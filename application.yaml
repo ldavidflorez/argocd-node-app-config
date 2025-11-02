@@ -7,7 +7,7 @@ spec:
   project: default
 
   source:
-    repoURL: https://github.com/harish981/argocd-node-app-config.git
+    repoURL: https://github.com/ldavidflorez/argocd-node-app-config.git
     targetRevision: main
     path: node-app
   destination: 

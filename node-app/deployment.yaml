@@ -12,6 +12,8 @@ spec:
       labels:
         app: node-app
     spec:
+      imagePullSecrets:
+      - name: ocir-secret
       containers:
         - name: node-app
           image: harish981/examplenode-dev:12
