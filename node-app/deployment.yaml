@@ -16,6 +16,6 @@ spec:
         - name: ocir-secret
       containers:
         - name: node-app
-          image: ord.ocir.io/axtid53peedq/node-app:54ada6ef3b577a3b202be30a66a5cc7fe6896968
+          image: ord.ocir.io/axtid53peedq/node-app:746493a9f960e5d5ae99c720cd325e38550723a5
           ports:
             - containerPort: 3000
