@@ -1,6 +1,6 @@
 # ArgoCD Node App Config
 
-This repository contains the ArgoCD configuration for deploying a Node.js application on Kubernetes, using a private Oracle Cloud Infrastructure (OCI) registry.
+This repository contains the ArgoCD configuration for deploying a Node.js application on Kubernetes, using a private Oracle Cloud Infrastructure OCI registry.
 
 ## Repository Structure
 
@@ -19,61 +19,25 @@ This repository contains the ArgoCD configuration for deploying a Node.js applic
 
 ## Manifest Configuration
 
-### 1. Configure the Secret in the Manifest
+### 1. Create the Namespace
 
-The secret is created by ArgoCD when it applies the `secret.yaml` manifest. Edit the `stringData` section in `node-app/secret.yaml` with your OCI credentials.
+Create the `node-app` namespace manually:
 
-1. **Get your OCI credentials:**
-   - **Server:** `phx.ocir.io` (adjust based on your region, e.g., `ord.ocir.io` for Chicago).
-   - **Username:** `<tenancy-namespace>/<oci-username>`.
-     - `tenancy-namespace`: Your tenancy namespace (e.g., `ansh81vru1zp`).
-     - `oci-username`: Your OCI username.
-   - **Password:** Your OCI Auth Token (same as used in the CI pipeline).
+kubectl create namespace node-app
 
-2. **Generate the auth string:**
-   Run in your terminal:
-   ```bash
-   echo -n '<tenancy-namespace>/<oci-username>:<password>' | base64 -w 0
-   ```
-   Copy the output (this is the `auth` value).
+**Note:** The application.yaml has `CreateNamespace=false`, so ArgoCD will not create the namespace automatically.
 
-3. **Update `node-app/secret.yaml`:**
-   Edit the `stringData` section with your server, auth, and email:
-   ```yaml
-   stringData:
-     .dockerconfigjson: |
-       {
-         "auths": {
-           "phx.ocir.io": {
-             "auth": "<your-base64-auth>",
-             "email": "your-email@example.com"
-           }
-         }
-       }
-   ```
+### 2. Create the Secret for OCI Registry
 
-   **Note:** Replace placeholders with your actual values. The JSON is in plain text for easier editing. ArgoCD will create the secret in the cluster when syncing.
+The secret is created manually in the cluster using `kubectl`. This avoids storing sensitive data in the repository.
 
-#### Alternative: Create Secret Directly with kubectl
+Run the following command in your terminal (replace placeholders with your actual OCI credentials):
 
-If you prefer not to store the secret in the repository, you can create it directly in the cluster using `kubectl`. This is useful for environments where you want to avoid committing sensitive data.
+export OCI_AUTH_TOKEN='your_auth_token_here'
 
-1. Set your OCI Auth Token as an environment variable:
-   ```bash
-   export OCIR_PASSWORD='your-oci-auth-token'
-   ```
+kubectl create secret docker-registry ocir-secret --docker-server=ord.ocir.io --docker-username=axtid53peedq/luis.florez@blackpool.la --docker-password=$OCI_AUTH_TOKEN --docker-email=luis.florez@blackpool.la -n node-app
 
-2. Create the secret in the `node-app` namespace:
-   ```bash
-   kubectl create secret docker-registry ocir-secret \
-     --docker-server=phx.ocir.io \
-     --docker-username='ansh81vru1zp/your-oci-username' \
-     --docker-password=$OCIR_PASSWORD \
-     --docker-email='your-email@example.com' \
-     -n node-app
-   ```
-
-   **Note:** If you use this method, remove or comment out `secret.yaml` from the repository, as ArgoCD won't need to apply it.
+**Note:** This creates the secret in the `node-app` namespace. Ensure ArgoCD has permissions to access it. The deployment.yaml references this secret via `imagePullSecrets`.
 
 ### 2. Verify the Deployment
 
@@ -95,6 +59,7 @@ The `service.yaml` is configured as LoadBalancer to expose the app on port 3000.
 ## CI/CD Pipeline
 
 The pipeline in the app repository (not this one) builds the image, pushes it to OCIR, and triggers an event for ArgoCD to update the deployment with the new image tag.
+
 
 ## Troubleshooting
 
