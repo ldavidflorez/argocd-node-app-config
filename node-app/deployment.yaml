@@ -13,9 +13,9 @@ spec:
         app: node-app
     spec:
       imagePullSecrets:
-      - name: ocir-secret
+        - name: ocir-secret
       containers:
         - name: node-app
-          image: harish981/examplenode-dev:12
+          image: ord.ocir.io/axtid53peedq/node-app:458cda155c8df0d4bd781681948508a4340b39b2
           ports:
             - containerPort: 3000
